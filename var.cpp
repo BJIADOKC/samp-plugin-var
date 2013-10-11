@@ -29,16 +29,16 @@ PLUGIN_EXPORT bool PLUGIN_CALL Load(void **ppData)
     pAMXFunctions = ppData[PLUGIN_DATA_AMX_EXPORTS];
     logprintf = (logprintf_t)ppData[PLUGIN_DATA_LOGPRINTF];
 
-    logprintf("  Var plugin v1.0 loaded");
+    logprintf("  Var v%s by BJIADOKC loaded", PLUGIN_VERSION);
 
-    return true;
+    return 1;
 }
 
 
 
 PLUGIN_EXPORT void PLUGIN_CALL Unload()
 {
-	logprintf("  Var plugin v1.0 unloaded");
+	logprintf("  Var v%s by BJIADOKC unloaded", PLUGIN_VERSION);
 }
 
 
