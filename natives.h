@@ -21,6 +21,8 @@ public:
 	static cell AMX_NATIVE_CALL GetPVarArrInt(AMX *amx, cell *params);
 	static cell AMX_NATIVE_CALL GetPVarArrFloat(AMX *amx, cell *params);
 	static cell AMX_NATIVE_CALL GetPVarArrString(AMX *amx, cell *params);
+	static cell AMX_NATIVE_CALL DeletePVar_hooked(AMX *amx, cell *params);
+	static cell AMX_NATIVE_CALL ResetPlayerVars(AMX *amx, cell *params);
 
 	static cell AMX_NATIVE_CALL SetGVarInt(AMX *amx, cell *params);
 	static cell AMX_NATIVE_CALL SetGVarFloat(AMX *amx, cell *params);
@@ -28,6 +30,7 @@ public:
 	static cell AMX_NATIVE_CALL GetGVarInt(AMX *amx, cell *params);
 	static cell AMX_NATIVE_CALL GetGVarFloat(AMX *amx, cell *params);
 	static cell AMX_NATIVE_CALL GetGVarString(AMX *amx, cell *params);
+	static cell AMX_NATIVE_CALL DeleteGVar(AMX *amx, cell *params);
 
 	static cell AMX_NATIVE_CALL SetGVarArrInt(AMX *amx, cell *params);
 	static cell AMX_NATIVE_CALL SetGVarArrFloat(AMX *amx, cell *params);

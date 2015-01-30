@@ -37,6 +37,5 @@ struct amxVars
 {
 	long integer;
 	float floating;
-
 	std::string string;
 };

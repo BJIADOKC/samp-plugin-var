@@ -31,6 +31,8 @@ const AMX_NATIVE_INFO amxNatives::varNatives[] =
 	{"GetPVarArrInt", amxNatives::GetPVarArrInt},
 	{"GetPVarArrFloat", amxNatives::GetPVarArrFloat},
 	{"GetPVarArrString", amxNatives::GetPVarArrString},
+	{"DeletePVar_hooked", amxNatives::DeletePVar_hooked},
+	{"ResetPlayerVars", amxNatives::ResetPlayerVars},
 
 	{"SetGVarInt", amxNatives::SetGVarInt},
 	{"SetGVarFloat", amxNatives::SetGVarFloat},
@@ -38,6 +40,7 @@ const AMX_NATIVE_INFO amxNatives::varNatives[] =
 	{"GetGVarInt", amxNatives::GetGVarInt},
 	{"GetGVarFloat", amxNatives::GetGVarFloat},
 	{"GetGVarString", amxNatives::GetGVarString},
+	{"DeleteGVar", amxNatives::DeleteGVar},
 
 	{"SetGVarArrInt", amxNatives::SetGVarArrInt},
 	{"SetGVarArrFloat", amxNatives::SetGVarArrFloat},
@@ -175,18 +178,22 @@ cell AMX_NATIVE_CALL amxNatives::GetPVarArrInt(AMX *amx, cell *params)
 	char *varname = NULL;
 	long index = params[3];
 
+	boost::unordered_map<int, boost::unordered_map<std::string, boost::unordered_map<long, amxVars> > >::iterator pMap;
+
 	amx_StrParam(amx, params[2], varname);
 
 	if(!pVarArrPool.count(playerid))
 		return 0;
 
-	if(!pVarArrPool.find(playerid)->second.count(varname))
+	pMap = pVarArrPool.find(playerid);
+
+	if(!pMap->second.count(varname))
 		return 0;
 
-	if(!pVarArrPool.find(playerid)->second.find(varname)->second.count(index))
+	if(!pMap->second.find(varname)->second.count(index))
 		return 0;
 
-	return pVarArrPool.find(playerid)->second.find(varname)->second.find(index)->second.integer;
+	return pMap->second.find(varname)->second.find(index)->second.integer;
 }
 
 
@@ -206,18 +213,22 @@ cell AMX_NATIVE_CALL amxNatives::GetPVarArrFloat(AMX *amx, cell *params)
 	long index = params[3];
 	float value = 0.0f;
 
+	boost::unordered_map<int, boost::unordered_map<std::string, boost::unordered_map<long, amxVars> > >::iterator pMap;
+
 	amx_StrParam(amx, params[2], varname);
 
 	if(!pVarArrPool.count(playerid))
 		return amx_ftoc(value);
 
-	if(!pVarArrPool.find(playerid)->second.count(varname))
+	pMap = pVarArrPool.find(playerid);
+
+	if(!pMap->second.count(varname))
 		return amx_ftoc(value);
 
-	if(!pVarArrPool.find(playerid)->second.find(varname)->second.count(index))
+	if(!pMap->second.find(varname)->second.count(index))
 		return amx_ftoc(value);
 
-	value = pVarArrPool.find(playerid)->second.find(varname)->second.find(index)->second.floating;
+	value = pMap->second.find(varname)->second.find(index)->second.floating;
 
 	return amx_ftoc(value);
 }
@@ -239,19 +250,77 @@ cell AMX_NATIVE_CALL amxNatives::GetPVarArrString(AMX *amx, cell *params)
 	cell *dest = NULL;
 	long index = params[4];
 
+	boost::unordered_map<int, boost::unordered_map<std::string, boost::unordered_map<long, amxVars> > >::iterator pMap;
+
 	amx_StrParam(amx, params[2], varname);
 	amx_GetAddr(amx, params[3], &dest);
 
 	if(!pVarArrPool.count(playerid))
 		return 0;
 
-	if(!pVarArrPool.find(playerid)->second.count(varname))
+	pMap = pVarArrPool.find(playerid);
+
+	if(!pMap->second.count(varname))
 		return 0;
 
-	if(!pVarArrPool.find(playerid)->second.find(varname)->second.count(index))
+	if(!pMap->second.find(varname)->second.count(index))
 		return 0;
 
-	amx_SetString(dest, pVarArrPool.find(playerid)->second.find(varname)->second.find(index)->second.string.c_str(), NULL, NULL, params[5]);
+	amx_SetString(dest, pMap->second.find(varname)->second.find(index)->second.string.c_str(), NULL, NULL, params[5]);
+
+	return 1;
+}
+
+
+
+// native DeletePVar_hooked(playerid, varname[]);
+cell AMX_NATIVE_CALL amxNatives::DeletePVar_hooked(AMX *amx, cell *params)
+{
+	if(!arguments(2))
+	{
+		logprintf("Var plugin: Invalid argument count (%i) in native 'DeletePVar_hooked'", (params[0] >> 2));
+
+		return NULL;
+	}
+
+	int playerid = params[1];
+	char *varname = NULL;
+
+	boost::unordered_map<int, boost::unordered_map<std::string, boost::unordered_map<long, amxVars> > >::iterator pMap;
+
+	amx_StrParam(amx, params[2], varname);
+
+	if(!pVarArrPool.count(playerid))
+		return 0;
+
+	pMap = pVarArrPool.find(playerid);
+
+	if(!pMap->second.count(varname))
+		return 0;
+
+	pMap->second.quick_erase(pMap->second.find(varname));
+
+	return 1;
+}
+
+
+
+// native ResetPlayerVars(playerid);
+cell AMX_NATIVE_CALL amxNatives::ResetPlayerVars(AMX *amx, cell *params)
+{
+	if(!arguments(1))
+	{
+		logprintf("Var plugin: Invalid argument count (%i) in native 'ResetPlayerVars'", (params[0] >> 2));
+
+		return NULL;
+	}
+
+	int playerid = params[1];
+
+	if(!pVarArrPool.count(playerid))
+		return 0;
+
+	pVarArrPool.quick_erase(pVarArrPool.find(playerid));
 
 	return 1;
 }
@@ -399,6 +468,30 @@ cell AMX_NATIVE_CALL amxNatives::GetGVarString(AMX *amx, cell *params)
 		return 0;
 
 	amx_SetString(dest, gVarPool.find(varname)->second.string.c_str(), NULL, NULL, params[3]);
+
+	return 1;
+}
+
+
+
+// native DeleteGVar(varname[]);
+cell AMX_NATIVE_CALL amxNatives::DeleteGVar(AMX *amx, cell *params)
+{
+	if(!arguments(1))
+	{
+		logprintf("Var plugin: Invalid argument count (%i) in native 'DeleteGVar'", (params[0] >> 2));
+
+		return NULL;
+	}
+
+	char *varname = NULL;
+
+	amx_StrParam(amx, params[1], varname);
+
+	if(!gVarPool.count(varname))
+		return 0;
+
+	gVarPool.quick_erase(gVarPool.find(varname));
 
 	return 1;
 }
